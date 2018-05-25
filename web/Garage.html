@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset='utf-8'> 
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+        <title>Garage Doors</title>
+    </head>
+    <body>
+        <div class="container-fluid">
+            <h1>Garage Doors</h1>
+
+            <div class="row">
+                <!--ko foreach: doors-->
+            <div class="col-sm">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title"> <span data-bind="text: $data.doorName"></span></h5>
+                        <h5 class="card-subtitle mb-2 text-muted">Current status: <span data-bind="doorStateFormat: $data.status"></span></h5>
+                        <p class="card-text">Last Action:  <span data-bind="text: moment($data.lastChange).format('lll')"></span></p>
+                        <button type="button" onclick="btnClick()" class="btn btn-primary">Operate Door</a>
+                    </div>
+                </div>
+            </div>
+            <!-- /ko -->
+        </div>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.1/moment.min.js"></script>
+<script>
+  var socket = io();
+  var viewModel = {
+    doors : ko.observableArray([])
+  };
+
+  function btnClick(){
+      socket.emit('operateDoor');
+
+      setTimeout(function(){
+          socket.emit('stateRequest');
+        }, 2000);
+    }
+
+  socket.on('stateUpdate', function(data){
+      viewModel.doors(data.doors);
+      console.log(data);
+  });
+
+  ko.bindingHandlers.doorStateFormat = {
+    init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+        $(element).text("...");
+    },
+    update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+        var value = valueAccessor();
+        if(value){
+            $(element).text("Closed");
+        }
+        else {
+            $(element).text("Open");
+        }
+    }
+  }
+  ko.applyBindings(viewModel);
+
+</script>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script>
+
+    </body>
+</html>  
